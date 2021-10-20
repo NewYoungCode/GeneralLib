@@ -70,7 +70,7 @@ struct TString :public BASESTRING {
 struct TString :public BASESTRING {
 #endif
 public:
-	TString():BASESTRING(){}
+	TString():BASESTRING(){} 
 #ifdef UNICODE
 	TString(const std::string&str) :BASESTRING(Text::ANSIToUniCode(str)) {}
 	TString(const std::wstring&str) :BASESTRING(str) {}
