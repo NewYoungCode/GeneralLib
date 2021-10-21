@@ -23,12 +23,12 @@
 #pragma warning(disable:4101)
 #pragma warning(disable:4267)
 
-
-#define USECURL 0 //是否使用curl 使用curl会导致库变得很大
+#define USECURL 1 //是否使用curl 使用curl会导致库变得很大
+#define USEJSONCPP 1 //是否使用JsonCpp库 
 
 #define WIN32_LEAN_AND_MEAN //避免winsocket冲突
 
 #include "Text.h"
 #include "FileSystem.h"
 #include "WinTool.h"
-#include "Time.h"
+#include "Time.hpp"//防止和系统的time.h重命名

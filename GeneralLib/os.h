@@ -1,23 +1,10 @@
 #pragma once
-
-#include <iostream>
-#include <string>
-#include <functional>
-#include <fstream>
-#include <vector>
-#include <sstream>
-#include <mutex>
-#include <memory>
-#include <map>
-#include <io.h>
-#include <Windows.h>
-#include <winuser.h>
-#include <assert.h>
-
-#include "Text.hpp" //处理文字
-#include "FileSystem.hpp"//处理文件
-#include "Time.hpp" //处理时间
-#include "WinTool.hpp" //win32常用函数
+#include "General.h"
+#ifdef _DEBUG
+#pragma comment(lib,"GeneralLibD.lib")
+#else
+#pragma comment(lib,"GeneralLib.lib")
+#endif
 
 namespace comm {
 	inline void Log(const std::string &text) {
@@ -43,5 +30,8 @@ namespace comm {
 				File::Delete(it);
 			}
 		}
+	}
+	inline void Log(const std::wstring &wtext) {
+		Log(Text::UnicodeToANSI(wtext));
 	}
 }

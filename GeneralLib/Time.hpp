@@ -2,7 +2,7 @@
 #include "General.h"
 #include <time.h>
 namespace Time {
-	inline std::string ToString(time_t time_);
+	 std::string ToString(time_t time_);
 	time_t FileTimeToTime(const FILETIME &ft);
 	namespace Now {
 		std::string ToString(const std::string &format = "yyyy-MM-dd hh:mm:ss");

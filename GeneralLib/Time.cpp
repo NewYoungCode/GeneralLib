@@ -1,8 +1,5 @@
-#include "Time.h"
-
+#include "Time.hpp"
 namespace Time {
-
-
 	std::string ToString(time_t time_) {
 		char timeStr[64]{ 0 };
 		struct tm *ttime;

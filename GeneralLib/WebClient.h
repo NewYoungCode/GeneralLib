@@ -2,6 +2,8 @@
 #include "General.h"
 
 #if USECURL
+//全局初始化curl
+void Curl_Global_Init();
 
 //下载进度回调函数模型
 typedef std::function<void(__int64 total, __int64 now, float rate)> ProgressFunc;
@@ -22,7 +24,7 @@ public:
 		this->password = password;
 	}
 };
-namespace Form {
+namespace PostForm {
 	//字段类型
 	enum FieldType :char
 	{
@@ -37,10 +39,10 @@ namespace Form {
 		std::string FieldValue;
 
 		std::string FileName;
-		Field(const std::string & FieldName, const std::string &ValueOrFullFileName, Form::FieldType FieldType = Form::FieldType::Text) {
+		Field(const std::string & FieldName, const std::string &ValueOrFullFileName, PostForm::FieldType FieldType = PostForm::FieldType::Text) {
 			this->FieldName = FieldName;
 			this->FieldType = FieldType;
-			if (FieldType == Form::FieldType::File) {
+			if (FieldType == PostForm::FieldType::File) {
 				this->FieldValue = Path::GetFileName(ValueOrFullFileName);
 				this->FileName = ValueOrFullFileName;
 			}
@@ -53,6 +55,7 @@ namespace Form {
 
 class WebClient
 {
+	 
 private:
 	void*  Init(const std::string &url, std::string& resp, int timeOut);
 	long CleanUp(void* curl, int code);
@@ -68,7 +71,7 @@ public:
 	int DownloadFile(const std::string & strUrl, const std::string & filename, const ProgressFunc&progressCallback = NULL, int nTimeout = 20);
 	int HttpGet(const std::string & strUrl, std::string & strResponse, int nTimeout = 20);
 	int HttpPost(const std::string & strUrl, const std::string & data, std::string & respone, int nTimeout = 20);
-	int SubmitForm(const std::string &strUrl, const std::vector<Form::Field>& fieldValues, std::string& respone, int nTimeout = 20);
+	int SubmitForm(const std::string &strUrl, const std::vector<PostForm::Field>& fieldValues, std::string& respone, int nTimeout = 20);
 	int UploadFile(const std::string &strUrl, const std::string &filename, const std::string &field, std::string &respone, const ProgressFunc&progressCallback = NULL, int nTimeout = 30);
 	int FtpDownLoad(const std::string& strUrl, const std::string&user, const std::string&pwd, const std::string &outFileName, int nTimeout = 30);
 };

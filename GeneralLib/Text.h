@@ -29,10 +29,16 @@ namespace Text {
 	std::string ReplaceAll(const std::string &str, const std::string & oldText, const std::string & newText);
 	//×Ö·û´®·Ö¸î
 	std::vector<std::string> Split(const std::string& str, const std::string& ch);
-
 	//É¾³ý×Ö·û´®
 	bool EraseString(std::string &out_in_str, const std::string& in_oldStr);
-
+	template<typename ...T>
+	inline void Format(LPTSTR buf, size_t strCount, LPCTSTR formatStr, T...args) {
+#ifdef UNICODE
+		swprintf_s((buf), strCount, formatStr, std::forward<T>(args)...);
+#else
+		sprintf_s((buf), strCount, formatStr, std::forward<T>(args)...);
+#endif
+	}
 
 #define AUTOTEXT(str) const_cast<LPTSTR>(Text::Auto(str).c_str())
 	inline auto Auto(const std::string&str) {
@@ -70,9 +76,9 @@ struct TString :public BASESTRING {
 struct TString :public BASESTRING {
 #endif
 public:
-	TString():BASESTRING(){} 
+	TString() :BASESTRING() {}
 #ifdef UNICODE
-	TString(const std::string&str) :BASESTRING(Text::ANSIToUniCode(str)) {}
+	TString(const std::string&str) : BASESTRING(Text::ANSIToUniCode(str)) {}
 	TString(const std::wstring&str) :BASESTRING(str) {}
 
 	TString(const char*str) :BASESTRING(Text::ANSIToUniCode(str)) {}

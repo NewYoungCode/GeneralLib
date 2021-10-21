@@ -16,6 +16,10 @@
 #pragma comment(lib,"wldap32.lib")//curl需要的库
 #pragma comment(lib,"ws2_32.lib") //curl需要的库
 
+void Curl_Global_Init() {
+	curl_global_init(CURL_GLOBAL_ALL);
+}
+
 //接收响应body
 size_t g_curl_receive_callback(char *contents, size_t size, size_t nmemb, void *respone);
 //接收下载文件
@@ -160,7 +164,7 @@ int WebClient::UploadFile(const std::string &url, const std::string &filename, c
 
 	return CleanUp(curl, code);
 };
-int WebClient::SubmitForm(const std::string &strUrl, const std::vector<Form::Field>& fieldValues, std::string& respone, int nTimeout) {
+int WebClient::SubmitForm(const std::string &strUrl, const std::vector<PostForm::Field>& fieldValues, std::string& respone, int nTimeout) {
 
 	AddHeader("Content-Type", "multipart/form-data");
 	CURL* curl = Init(strUrl, respone, nTimeout);
@@ -171,14 +175,14 @@ int WebClient::SubmitForm(const std::string &strUrl, const std::vector<Form::Fie
 	struct curl_httppost*    lastptr = NULL;
 	// 设置表头，表头内容可能不同
 	for (auto &item : fieldValues) {
-		if (item.FieldType == Form::FieldType::File) {
+		if (item.FieldType == PostForm::FieldType::File) {
 			curl_formadd(&formpost, &lastptr,
 				CURLFORM_COPYNAME, item.FieldName.c_str(),
 				CURLFORM_FILE, item.FileName.c_str(),
 				CURLFORM_CONTENTTYPE, "application/octet-stream",
 				CURLFORM_END);
 		}
-		if (item.FieldType == Form::FieldType::Text) {
+		if (item.FieldType == PostForm::FieldType::Text) {
 			curl_formadd(&formpost, &lastptr, CURLFORM_COPYNAME, item.FieldName.c_str(), CURLFORM_COPYCONTENTS, item.FieldValue.c_str(), CURLFORM_END);
 		}
 	}

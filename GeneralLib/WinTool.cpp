@@ -125,7 +125,7 @@ namespace WinTool {
 		if (hProcess)
 		{
 			typedef BOOL(WINAPI *LPFN_ISWOW64PROCESS) (HANDLE, PBOOL);
-			LPFN_ISWOW64PROCESS fnIsWow64Process = (LPFN_ISWOW64PROCESS)GetProcAddress(GetModuleHandle(TEXT("kernel32")), TEXT("IsWow64Process"));
+			LPFN_ISWOW64PROCESS fnIsWow64Process = (LPFN_ISWOW64PROCESS)GetProcAddress(GetModuleHandle(TEXT("kernel32")),"IsWow64Process");
 			if (NULL != fnIsWow64Process)
 			{
 				fnIsWow64Process(hProcess, &bIsWow64);
