@@ -12,7 +12,15 @@ namespace comm {
 		OutputDebugStringA(("\n"));
 		std::string appFilename = Path::StartFileName();
 		std::string appName = Path::GetFileNameWithoutExtension(appFilename);
-		std::string dir = Path::GetDirectoryName(appFilename) + "/" + appName + "_Log";
+
+#ifdef _DEBUG
+		std::string dir = Path::GetDirectoryName(appFilename) + "\\" + appName + "_Log";
+#else
+		CHAR buf[MAX_PATH]{ 0 };
+		::GetTempPathA(MAX_PATH, buf);
+		std::string dir = std::string(buf)+"\\"+appName+"_Log";
+#endif
+
 		std::string logFilename = dir + "/" + Time::Now::ToString("yyyy-MM-dd") + ".log";
 		Path::Create(dir);
 		std::string logText = Time::Now::ToString("hh:mm:ss ") + text;

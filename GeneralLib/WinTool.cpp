@@ -3,7 +3,7 @@
 namespace WinTool {
 
 	// 获取系统信息
-	 void SafeGetNativeSystemInfo(__out LPSYSTEM_INFO lpSystemInfo)
+	void SafeGetNativeSystemInfo(__out LPSYSTEM_INFO lpSystemInfo)
 	{
 		if (NULL == lpSystemInfo)
 		{
@@ -24,7 +24,7 @@ namespace WinTool {
 	}
 
 	// 获取操作系统位数
-	 int GetSystemBits()
+	int GetSystemBits()
 	{
 		SYSTEM_INFO si;
 		SafeGetNativeSystemInfo(&si);
@@ -36,12 +36,18 @@ namespace WinTool {
 		return 32;
 	}
 
+	std::string GetComputerID()
+	{
+		
+		return std::string();
+	}
 
 
-	 DWORD GetCurrentProcessId() {
+
+	DWORD GetCurrentProcessId() {
 		return ::getpid();
 	}
-	 HWND FindMainWindow(DWORD processId)
+	HWND FindMainWindow(DWORD processId)
 	{
 		handle_data data;
 		data.processId = processId;
@@ -49,7 +55,7 @@ namespace WinTool {
 		EnumWindows(EnumWindowsCallback, (LPARAM)&data);
 		return data.best_handle;
 	}
-	 BOOL CALLBACK EnumWindowsCallback(HWND handle, LPARAM lParam)
+	BOOL CALLBACK EnumWindowsCallback(HWND handle, LPARAM lParam)
 	{
 		handle_data& data = *(handle_data*)lParam;
 		HWND hwnd = ::GetWindow(handle, GW_OWNER);
@@ -65,7 +71,7 @@ namespace WinTool {
 		return FALSE;
 	}
 
-	 std::vector<PROCESSENTRY32> FindProcessInfo(const std::string& _proccname) {
+	std::vector<PROCESSENTRY32> FindProcessInfo(const std::string& _proccname) {
 
 		std::vector<PROCESSENTRY32> infos;
 		HANDLE hSnapshot = ::CreateToolhelp32Snapshot(TH32CS_SNAPPROCESS, 0);
@@ -93,7 +99,7 @@ namespace WinTool {
 		CloseHandle(hSnapshot);
 		return infos;
 	}
-	 std::vector<DWORD> FindProcessId(const std::string& _proccname)
+	std::vector<DWORD> FindProcessId(const std::string& _proccname)
 	{
 		std::vector<DWORD> processIds;
 		auto list = FindProcessInfo(_proccname);
@@ -103,7 +109,7 @@ namespace WinTool {
 		return processIds;
 	}
 
-	 HANDLE OpenProcess(const std::string& _proccname) {
+	HANDLE OpenProcess(const std::string& _proccname) {
 		std::vector<DWORD> processIds;
 		auto list = FindProcessInfo(_proccname);
 		if (list.size() > 0) {
@@ -113,19 +119,19 @@ namespace WinTool {
 		return NULL;
 	}
 
-	 	bool Is86BitPorcess(DWORD processId) {
+	bool Is86BitPorcess(DWORD processId) {
 
 		return !Is64BitPorcess(processId);
 	}
 
-	 	bool Is64BitPorcess(DWORD processId)
+	bool Is64BitPorcess(DWORD processId)
 	{
 		BOOL bIsWow64 = FALSE;
 		HANDLE hProcess = ::OpenProcess(PROCESS_QUERY_INFORMATION, FALSE, processId);
 		if (hProcess)
 		{
 			typedef BOOL(WINAPI *LPFN_ISWOW64PROCESS) (HANDLE, PBOOL);
-			LPFN_ISWOW64PROCESS fnIsWow64Process = (LPFN_ISWOW64PROCESS)GetProcAddress(GetModuleHandle(TEXT("kernel32")),"IsWow64Process");
+			LPFN_ISWOW64PROCESS fnIsWow64Process = (LPFN_ISWOW64PROCESS)GetProcAddress(GetModuleHandle(TEXT("kernel32")), "IsWow64Process");
 			if (NULL != fnIsWow64Process)
 			{
 				fnIsWow64Process(hProcess, &bIsWow64);
@@ -135,7 +141,7 @@ namespace WinTool {
 		return !bIsWow64;
 	}
 
-	 std::string FindProcessFilename(DWORD processId)
+	std::string FindProcessFilename(DWORD processId)
 	{
 		char buf[MAX_PATH]{ 0 };
 		HANDLE hProcess = ::OpenProcess(PROCESS_ALL_ACCESS, FALSE, processId);
@@ -143,14 +149,14 @@ namespace WinTool {
 		CloseHandle(hProcess);
 		return buf;
 	}
-	 int CloseProcess(const std::vector<DWORD>& processIds) {
+	int CloseProcess(const std::vector<DWORD>& processIds) {
 		size_t count = 0;
 		for (auto item : processIds) {
 			count += CloseProcess(item);
 		}
 		return count;
 	}
-	 bool CloseProcess(DWORD processId)
+	bool CloseProcess(DWORD processId)
 	{
 		HANDLE bExitCode = ::OpenProcess(PROCESS_QUERY_INFORMATION | PROCESS_VM_OPERATION | PROCESS_VM_WRITE
 			| PROCESS_ALL_ACCESS, FALSE, processId);
@@ -162,7 +168,7 @@ namespace WinTool {
 		}
 		return false;
 	}
-	 bool GetAutoBootStatus(const std::string& filename) {
+	bool GetAutoBootStatus(const std::string& filename) {
 		std::string bootstart = filename.empty() ? Path::StartFileName() : filename;
 		std::string appName = Path::GetFileNameWithoutExtension(bootstart);
 		bool bResult = false;
@@ -183,7 +189,7 @@ namespace WinTool {
 		::RegCloseKey(subKey);
 		return bResult;
 	}
-	 bool SetAutoBoot(const std::string& filename, bool bStatus)
+	bool SetAutoBoot(const std::string& filename, bool bStatus)
 	{
 		//如果需要设置成自启动而且已经是自启动就返回true
 		if (bStatus && GetAutoBootStatus(filename)) {
@@ -218,7 +224,7 @@ namespace WinTool {
 		::RegCloseKey(subKey);
 		return bResult;
 	}
-	 BOOL EnablePrivilege(HANDLE process)
+	BOOL EnablePrivilege(HANDLE process)
 	{
 		// 得到令牌句柄
 		HANDLE hToken = NULL;
@@ -241,7 +247,7 @@ namespace WinTool {
 		CloseHandle(hToken);
 		return bResult;
 	}
-	 bool CreateDesktopLnk(const std::string &pragmaFilename, const std::string &LnkName, const std::string& cmdline, const std::string& iconFilename) {
+	bool CreateDesktopLnk(const std::string &pragmaFilename, const std::string &LnkName, const std::string& cmdline, const std::string& iconFilename) {
 		HRESULT hr = CoInitialize(NULL);
 		bool bResult = false;
 		if (SUCCEEDED(hr))

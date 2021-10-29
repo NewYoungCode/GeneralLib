@@ -43,5 +43,8 @@ namespace WinTool {
 	//获取系统信息
 	void SafeGetNativeSystemInfo(__out LPSYSTEM_INFO lpSystemInfo);
 	//获取系统位数
-	inline int GetSystemBits();
+	 int GetSystemBits();
+	 //获取计算机唯一识别码
+	 std::string GetComputerID();
+
 };
