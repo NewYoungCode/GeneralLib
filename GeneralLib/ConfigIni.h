@@ -1,7 +1,7 @@
 #pragma once
 #include "General.h"
 class ConfigIni {
-private:
+protected:
 	size_t buffSize = MAX_PATH;
 	std::string filename;
 	std::string section;
@@ -23,4 +23,27 @@ public:
 	bool WriteValue(const std::string &key, const std::string &value, const std::string &section = "")const;
 	std::vector<std::string> GetSections();
 	void DeleteSection(const std::string&section);
+};
+
+class SafeConfigIni :public ConfigIni {
+private:
+	std::string oldFilename;
+public:
+	static void EnCode(const std::string &filename, const std::string &outFilename) {
+		std::string data;
+		File::ReadFile(filename, data);
+		char *memBytes = new char[data.size()];
+		size_t pos = 0;
+		for (auto&it : data) {
+			memBytes[pos] = it + 1;
+			pos++;
+		}
+		File::Delete(outFilename);
+		std::ofstream ofs(outFilename, std::ios::app | std::ios::binary);
+		ofs.write(memBytes, data.size());
+		ofs.flush();
+		ofs.close();
+		delete memBytes;
+	}
+	SafeConfigIni(const std::string &filename, const std::string &defaultSection = "setting", bool create = true, size_t buffSize = MAX_PATH);
 };

@@ -1,7 +1,9 @@
 #include "WinTool.h"
 
 namespace WinTool {
-
+#ifndef FormatError
+#define FormatError(x)	(x)
+#endif // FormatError
 	// 获取系统信息
 	void SafeGetNativeSystemInfo(__out LPSYSTEM_INFO lpSystemInfo)
 	{
@@ -35,14 +37,195 @@ namespace WinTool {
 		}
 		return 32;
 	}
+	void __Encrypt(void *lpInbuf, DWORD dwInsize, void *lpOutbuf, DWORD *lpOutsize)
+	{
+		DWORD i;
+		for (i = 0; i < dwInsize; i++)
+		{
+			WORD s = (WORD)(i*i * 7 % 237 + 1);
+			*(((WORD *)lpOutbuf) + i) = (*(((BYTE *)lpInbuf) + i) + (BYTE)(i % 255)) & 0xff;
+			*(((WORD *)lpOutbuf) + i) *= s;
+		}
+		*lpOutsize = dwInsize * 2;
+	}
+
+	void __Bin2Text(void *lpInbuf, DWORD dwInsize, void *lpOutbuf, DWORD *lpOutsize)
+	{
+		DWORD i = 0;
+		BYTE *tmpoutbuf = (BYTE *)lpOutbuf;
+		for (i = 0; i < dwInsize; i++)
+		{
+			BYTE inchar = *(((BYTE *)lpInbuf) + i);
+			*(tmpoutbuf + i * 2) = ((inchar & 0xf) > 9) ? ((inchar & 0xf) - 10 + 'A') : ((inchar & 0xf) + '0');
+			*(tmpoutbuf + i * 2 + 1) = (((inchar >> 4) & 0xf) > 9) ? (((inchar >> 4) & 0xf) - 10 + 'A') : (((inchar >> 4) & 0xf) + '0');
+		}
+		*lpOutsize = dwInsize * 2;
+
+	}
+
+	void __Text16To64(void *lpBuf, DWORD dwSize)
+	{
+		DWORD i;
+		for (i = 0; i < dwSize; i++)
+		{
+
+			BYTE	dwMul = (BYTE)((i * 237) >> 1) % 4;
+			BYTE	dwAdd = (BYTE)((i * 237) >> 2) % 4;
+			BYTE	*bSure = ((BYTE*)lpBuf) + i;
+			*bSure -= '0';
+			if (*bSure > 9)*bSure -= 'A' - '9' - 1;
+			*bSure *= (dwMul + 1);
+			*bSure += dwAdd;
+			if (*bSure < 10) *bSure += '0';
+			else if (*bSure < 36)*bSure += 'A' - 10;
+			else if (*bSure < 62)*bSure += 'a' - 36;
+			else if (*bSure == 62)*bSure = ':';
+			else if (*bSure == 63)*bSure = '_';
+		}
+	}
+
+	BOOL __EncryptData(void *lpInbuf, DWORD dwInsize, void *lpOutbuf, DWORD *lpOutsize)
+	{
+		void *tmpbuf = malloc(dwInsize * 2);
+		DWORD outsize;
+		if (tmpbuf == NULL)
+			return FALSE;
+		DWORD i, j;
+		__Encrypt(lpInbuf, dwInsize, tmpbuf, &outsize);
+		for (i = 0; i < outsize; i++)
+		{
+			for (j = 0; j < outsize; j++)
+			{
+				if (i != j)*(((BYTE *)tmpbuf) + j) += *(((BYTE *)tmpbuf) + i);
+			}
+		}
+		__Bin2Text(tmpbuf, outsize, lpOutbuf, lpOutsize);
+		__Text16To64(lpOutbuf, *lpOutsize);
+		free(tmpbuf);
+		return TRUE;
+
+	}
+
+#ifndef _WIN64
+	BOOL GetCPUID(char *szCPUID)
+	{
+		unsigned long s1, s2;
+		unsigned char vendor_id[] = "------------";
+		char sel;
+		sel = '1';
+		char CPUID1[32];
+		char CPUID2[32];
+		memset(CPUID1, 0, sizeof(CPUID1));
+		memset(CPUID2, 0, sizeof(CPUID2));
+		__asm {
+			xor eax, eax
+			cpuid
+			mov dword ptr vendor_id, ebx
+			mov dword ptr vendor_id[+4], edx
+			mov dword ptr vendor_id[+8], ecx
+		}
+		__asm {
+			mov eax, 01h
+			xor edx, edx
+			cpuid
+			mov s1, edx
+			mov s2, eax
+		}
+		sprintf(CPUID1, "%08X%08X", s1, s2);
+		__asm {
+			mov eax, 03h
+			xor ecx, ecx
+			xor edx, edx
+			cpuid
+			mov s1, edx
+			mov s2, ecx
+		}
+		sprintf(CPUID2, "%08X%08X", s1, s2);
+		//	strcpy(szCPUID, (const char *)vendor_id);
+		//	strcat(szCPUID, "{");
+		strcat(szCPUID, CPUID1);
+		strcat(szCPUID, CPUID2);
+		//	strcat(szCPUID, "}");
+		return TRUE;
+
+	}
+#endif // #ifndef _WIN64
+
+	DWORD __GetClientUniqueCode(OUT LPSTR lpszCUC)
+	{
+		DWORD dwResult = 0;
+		//	DWORD dwSysDiskNum = 0;
+		//	PIDINFO lpID = NULL;
+		TCHAR szPath[MAX_PATH] = { 0 };
+
+		do
+		{
+			if (NULL == lpszCUC)
+			{
+				dwResult = FormatError(ERROR_INVALID_PARAMETER); break;
+			}
+			*lpszCUC = 0;
+			//////////////////////////////////////////////////////////////////////////
+	/*		DWORD dwBufBytes = max(sizeof(IDINFO),8192);
+			lpID = (PIDINFO)malloc(dwBufBytes);
+			if ( NULL == lpID )
+			{
+				dwResult = FormatError(ERROR_NOT_ENOUGH_MEMORY); break;
+			}
+			//////////////////////////////////////////////////////////////////////////
+			::GetWindowsDirectory( szPath, MAX_PATH-1 );
+			_tcsupr( szPath );
+			TCHAR cLetter = szPath[0];
+			sprintf( szPath, "\\\\.\\%C:", cLetter );
+			dwResult = GetDiskNumber( szPath, &dwSysDiskNum, NULL, NULL, NULL );
+			if ( dwResult )
+			{
+				FormatError(dwResult); break;
+			}
+			dwResult = GetDiskIdInfo(dwSysDiskNum, lpID);
+			if ( dwResult )
+			{
+				FormatError(dwResult); break;
+			}
+			//////////////////////////////////////////////////////////////////////////
+			CHAR szCode[64] = {0};
+			RtlZeroMemory(szCode, sizeof(szCode));
+			strcpy(szCode, lpID->sSerialNumber);
+			szCode[32] = 0;
+	*/		//////////////////////////////////////////////////////////////////////////
+			CHAR szCode[64] = { 0 };
+#ifdef _WIN64
+			dwResult = FormatError(ERROR_NOT_SUPPORTED); break;
+#else
+			GetCPUID(szCode);
+			szCode[32] = 0;
+#endif
+			//////////////////////////////////////////////////////////////////////////
+			CHAR szData[MAX_PATH] = { 0 };
+			RtlZeroMemory(szData, sizeof(szData));
+			DWORD outsize = 0;
+			__EncryptData(szCode, strlen(szCode), szData, &outsize);
+			//////////////////////////////////////////////////////////////////////////
+			RtlZeroMemory(szCode, sizeof(szCode));
+			for (int i = 0; i < 32; i++)
+			{
+				szCode[i] = szData[i*outsize / 32];
+				if (szCode[i] >= 'a' && szCode[i] <= 'z')szCode[i] -= 'a' - 'A';
+			}
+			szCode[16] = 0;
+			strcpy(lpszCUC, szCode);
+		} while (0);
+		//	if ( lpID )	free(lpID);
+
+		return dwResult;
+	}
 
 	std::string GetComputerID()
 	{
-		
-		return std::string();
+		CHAR szCUC[32] = { 0 };
+		__GetClientUniqueCode(szCUC);
+		return std::string(szCUC);
 	}
-
-
 
 	DWORD GetCurrentProcessId() {
 		return ::getpid();

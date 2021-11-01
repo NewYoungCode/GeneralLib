@@ -128,3 +128,35 @@ void  ConfigIni::DeleteSection(const std::string&section) {
 	return;
 }
 
+
+
+SafeConfigIni::SafeConfigIni(const std::string & filename, const std::string & defaultSection, bool create, size_t buffSize)
+{
+
+	oldFilename = filename;
+
+	std::string data;
+	File::ReadFile(filename, data);
+
+	TCHAR buf[256]{ 0 };
+	::GetTempPath(255, buf);
+
+	char *memBytes = new char[data.size()];
+	size_t pos = 0;
+	for (auto&it : data) {
+		memBytes[pos] = it - 1;
+		pos++;
+	}
+
+	std::string tempFile = buf + Path::GetFileNameWithoutExtension(Path::StartFileName()) + std::to_string(time(NULL));
+	File::Delete(tempFile);
+	std::ofstream ofs(tempFile, std::ios::app | std::ios::binary);
+	ofs.write(memBytes, data.size());
+	ofs.flush();
+	ofs.close();
+
+	this->buffSize = buffSize;
+	this->filename = tempFile;
+	this->section = defaultSection;
+	delete  memBytes;
+}

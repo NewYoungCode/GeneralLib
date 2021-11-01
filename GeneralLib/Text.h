@@ -1,6 +1,8 @@
 #pragma once
 #include "General.h"
 namespace Text {
+	DWORD IPStringToDWORD(const std::string&ipStr);
+	std::string IPDWORDToString(DWORD&ip);
 	//寻找字符串里面字符个数
 	size_t FindCount(const std::string&str, const std::string&ch_);
 	//去除前后空格
