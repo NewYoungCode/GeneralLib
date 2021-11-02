@@ -7,6 +7,11 @@
 class HttpClient
 {
 public:
-	int Get(const std::string&url, std::string outRespone);
+	HttpClient();
+	~HttpClient();
+	std::map<std::string, std::string> Headers;
+	void AddHeader(const std::string&key, const std::string&value);
+	int Get(const std::string&url, std::string &outRespone);
+	void Post(const std::string&url, std::string&respone);
 };
 
