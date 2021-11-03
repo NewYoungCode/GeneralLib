@@ -7,7 +7,7 @@
 #endif
 
 namespace comm {
-	inline void Log(const std::string &text) {
+	inline void LogA(const std::string &text) {
 		OutputDebugStringA(text.c_str());
 		OutputDebugStringA(("\n"));
 		std::string appFilename = Path::StartFileName();
@@ -18,7 +18,7 @@ namespace comm {
 #else
 		CHAR buf[MAX_PATH]{ 0 };
 		::GetTempPathA(MAX_PATH, buf);
-		std::string dir = std::string(buf)+"\\"+appName+"_Log";
+		std::string dir = std::string(buf) + "\\" + appName + "_Log";
 #endif
 
 		std::string logFilename = dir + "/" + Time::Now::ToString("yyyy-MM-dd") + ".log";
@@ -39,7 +39,22 @@ namespace comm {
 			}
 		}
 	}
-	inline void Log(const std::wstring &wtext) {
-		Log(Text::UnicodeToANSI(wtext));
+	inline void LogW(const std::wstring &wtext) {
+		LogA(Text::UnicodeToANSI(wtext));
 	}
+
+	template<typename ...T>
+	inline void Log(const std::wstring& formatStr, T...args) {
+		wchar_t buf[256]{ 0 };
+		swprintf_s((buf), 255, formatStr.c_str(), std::forward<T>(args)...);
+		LogW(buf);
+	}
+
+	template<typename ...T>
+	inline void Log(const std::string& formatStr, T...args) {
+		char buf[256]{ 0 };
+		sprintf_s((buf), 255, formatStr.c_str(), std::forward<T>(args)...);
+		LogA(buf);
+	}
+
 }

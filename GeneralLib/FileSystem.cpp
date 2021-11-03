@@ -256,6 +256,7 @@ namespace Path {
 		{
 			return true;
 		}
+
 		return false;
 	}
 #else

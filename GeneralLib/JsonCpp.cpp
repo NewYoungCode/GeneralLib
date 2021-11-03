@@ -1,14 +1,16 @@
 #include "JsonCpp.h"
 #if USEJSONCPP
-#ifdef  _DEBUG
-#pragma comment (lib,"json_libd.lib")
-#else
-#pragma comment (lib,"json_lib.lib")
-#endif
-namespace Json {
-	bool parse(const std::string&jsonStr, Json::Value&outValue) {
-		Json::Reader rd;
-		return rd.parse(jsonStr, outValue);
-	}
-};
+JObject::JObject(const Json::Value&right) {
+	Json::Value temp(right);
+	swap(temp);
+}
+JObject& JObject:: operator = (const Json::Value &other)
+{
+	Value temp(other);
+	swap(temp);
+	return *this;
+}
+JObject::JObject(const std::string&jsonStr) {
+	rd.parse(jsonStr, *this);
+}
 #endif
