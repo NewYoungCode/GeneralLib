@@ -52,8 +52,9 @@ namespace comm {
 
 	template<typename ...T>
 	inline void Log(const std::string& formatStr, T...args) {
-		char buf[256]{ 0 };
-		sprintf_s((buf), 255, formatStr.c_str(), std::forward<T>(args)...);
+		int len = formatStr.length();
+		char buf[2048]{ 0 };
+		sprintf_s((buf), sizeof(buf), formatStr.c_str(), std::forward<T>(args)...);
 		LogA(buf);
 	}
 

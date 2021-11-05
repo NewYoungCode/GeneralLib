@@ -16,6 +16,8 @@ namespace File {
 	void ReadFile(const  std::string &filename, std::string&outData);
 	//写入文件
 	void WriteFile(const std::stringstream & data, const std::string & filename);
+	void Copy(const  std::string &filename, const  std::string &des_filename,bool cover=true);
+	std::string CreateTempFile(const std::string&filename);
 }
 namespace Path {
 	//自己写的文件监控类
